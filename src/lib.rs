@@ -16,7 +16,7 @@
 //!
 //! ```rust
 //! use cursive::{Cursive, CursiveExt};
-//! use cursive_flexi_logger_view::FlexiLoggerView;
+//! use cursive_logger_view::FlexiLoggerView;
 //! use flexi_logger::Logger;
 //!     // we need to initialize cursive first, as the cursive-flexi-logger
 //!     // needs a cursive callback sink to notify cursive about screen refreshs
@@ -29,7 +29,7 @@
 //!            flexi_logger::FileSpec::default()
 //!                 .directory("logs")
 //!                 .suppress_timestamp(),
-//!             cursive_flexi_logger_view::cursive_flexi_logger(&siv)
+//!             cursive_logger_view::cursive_flexi_logger(&siv)
 //!         )
 //!         .format(flexi_logger::colored_with_thread)
 //!         .start()
@@ -55,7 +55,7 @@
 //!
 //! ```rust
 //! use cursive::{Cursive, CursiveExt};
-//! use cursive_flexi_logger_view::{show_flexi_logger_debug_console, hide_flexi_logger_debug_console, toggle_flexi_logger_debug_console};
+//! use cursive_logger_view::{show_flexi_logger_debug_console, hide_flexi_logger_debug_console, toggle_flexi_logger_debug_console};
 //! use flexi_logger::Logger;
 //!     // we need to initialize cursive first, as the cursive-flexi-logger
 //!     // needs a cursive callback sink to notify cursive about screen refreshs
@@ -68,7 +68,7 @@
 //!            flexi_logger::FileSpec::default()
 //!                 .directory("logs")
 //!                 .suppress_timestamp(),
-//!             cursive_flexi_logger_view::cursive_flexi_logger(&siv)
+//!             cursive_logger_view::cursive_flexi_logger(&siv)
 //!         )
 //!         .format(flexi_logger::colored_with_thread)
 //!         .start()
@@ -115,7 +115,7 @@ const GET_LOCK_ERR_MSG: &str = "Failed to get static_logs Mutex Lock";
 ///
 /// ```rust
 /// use cursive::{Cursive, CursiveExt};
-/// use cursive_flexi_logger_view::FlexiLoggerView;
+/// use cursive_logger_view::FlexiLoggerView;
 /// use flexi_logger::Logger;
 ///     // we need to initialize cursive first, as the cursive-flexi-logger
 ///     // needs a cursive callback sink to notify cursive about screen refreshs
@@ -128,7 +128,7 @@ const GET_LOCK_ERR_MSG: &str = "Failed to get static_logs Mutex Lock";
 ///            flexi_logger::FileSpec::default()
 ///                 .directory("logs")
 ///                 .suppress_timestamp(),
-///             cursive_flexi_logger_view::cursive_flexi_logger(&siv)
+///             cursive_logger_view::cursive_flexi_logger(&siv)
 ///         )
 ///         .format(flexi_logger::colored_with_thread)
 ///         .start()
@@ -144,7 +144,7 @@ const GET_LOCK_ERR_MSG: &str = "Failed to get static_logs Mutex Lock";
 ///
 /// ```rust
 /// use cursive::{Cursive, CursiveExt};
-/// use cursive_flexi_logger_view::FlexiLoggerView;
+/// use cursive_logger_view::FlexiLoggerView;
 /// use flexi_logger::Logger;
 ///     // we need to initialize cursive first, as the cursive-flexi-logger
 ///     // needs a cursive callback sink to notify cursive about screen refreshs
@@ -157,7 +157,7 @@ const GET_LOCK_ERR_MSG: &str = "Failed to get static_logs Mutex Lock";
 ///            flexi_logger::FileSpec::default()
 ///                 .directory("logs")
 ///                 .suppress_timestamp(),
-///             cursive_flexi_logger_view::cursive_flexi_logger(&siv)
+///             cursive_logger_view::cursive_flexi_logger(&siv)
 ///         )
 ///         .format(flexi_logger::colored_with_thread)
 ///         .start()
@@ -370,7 +370,7 @@ impl FormattableLogWriter for Box<CursiveLogWriter> {
 ///            flexi_logger::FileSpec::default()
 ///                 .directory("logs")
 ///                 .suppress_timestamp(),
-///             cursive_flexi_logger_view::cursive_flexi_logger(&siv)
+///             cursive_logger_view::cursive_flexi_logger(&siv)
 ///         )
 ///         .format(flexi_logger::colored_with_thread)
 ///         .start()
@@ -459,7 +459,7 @@ impl LogWriter for CursiveLogWriter {
 ///
 /// ```rust
 /// use cursive::{Cursive, CursiveExt};
-/// use cursive_flexi_logger_view::show_flexi_logger_debug_console;
+/// use cursive_logger_view::show_flexi_logger_debug_console;
 /// use flexi_logger::Logger;
 ///
 ///     // we need to initialize cursive first, as the cursive-flexi-logger
@@ -473,7 +473,7 @@ impl LogWriter for CursiveLogWriter {
 ///            flexi_logger::FileSpec::default()
 ///                 .directory("logs")
 ///                 .suppress_timestamp(),
-///             cursive_flexi_logger_view::cursive_flexi_logger(&siv)
+///             cursive_logger_view::cursive_flexi_logger(&siv)
 ///         )
 ///         .format(flexi_logger::colored_with_thread)
 ///         .start()
@@ -498,7 +498,7 @@ pub fn show_flexi_logger_debug_console(siv: &mut Cursive) {
 ///
 /// ```rust
 /// use cursive::{Cursive, CursiveExt};
-/// use cursive_flexi_logger_view::hide_flexi_logger_debug_console;
+/// use cursive_logger_view::hide_flexi_logger_debug_console;
 /// use flexi_logger::Logger;
 ///     // we need to initialize cursive first, as the cursive-flexi-logger
 ///     // needs a cursive callback sink to notify cursive about screen refreshs
@@ -511,7 +511,7 @@ pub fn show_flexi_logger_debug_console(siv: &mut Cursive) {
 ///            flexi_logger::FileSpec::default()
 ///                 .directory("logs")
 ///                 .suppress_timestamp(),
-///             cursive_flexi_logger_view::cursive_flexi_logger(&siv)
+///             cursive_logger_view::cursive_flexi_logger(&siv)
 ///         )
 ///         .format(flexi_logger::colored_with_thread)
 ///         .start()
@@ -539,7 +539,7 @@ pub fn hide_flexi_logger_debug_console(siv: &mut Cursive) {
 ///
 /// ```rust
 /// use cursive::{Cursive, CursiveExt};
-/// use cursive_flexi_logger_view::toggle_flexi_logger_debug_console;
+/// use cursive_logger_view::toggle_flexi_logger_debug_console;
 /// use flexi_logger::Logger;
 ///     // we need to initialize cursive first, as the cursive-flexi-logger
 ///     // needs a cursive callback sink to notify cursive about screen refreshs
@@ -552,7 +552,7 @@ pub fn hide_flexi_logger_debug_console(siv: &mut Cursive) {
 ///            flexi_logger::FileSpec::default()
 ///                 .directory("logs")
 ///                 .suppress_timestamp(),
-///             cursive_flexi_logger_view::cursive_flexi_logger(&siv)
+///             cursive_logger_view::cursive_flexi_logger(&siv)
 ///         )
 ///         .format(flexi_logger::colored_with_thread)
 ///         .start()
