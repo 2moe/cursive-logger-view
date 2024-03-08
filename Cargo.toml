@@ -1,23 +1,25 @@
 [package]
-authors = ["Fin Christensen <christensen.fin@gmail.com>", "Johannes Wünsche <johannes.wuensche97@gmail.com>"]
-description = "An alternative debug view for gyscos/cursive using emabee/flexi_logger"
-documentation = "https://docs.rs/cursive-flexi-logger-view"
+authors = [
+    "Fin Christensen <christensen.fin@gmail.com>",
+    "Johannes Wünsche <johannes.wuensche97@gmail.com>",
+]
+description = "Forked from deinstapel/cursive-flexi-logger-view"
+documentation = "https://docs.rs/cursive-logger-view"
 edition = "2018"
 keywords = ["cursive-views", "cursive", "logging", "debug", "terminal"]
 license = "BSD-3-Clause"
-name = "cursive-flexi-logger-view"
+name = "cursive-logger-view"
 readme = "README.md"
-repository = "https://github.com/deinstapel/cursive-flexi-logger-view"
-version = "0.5.0"
+repository = "https://github.com/2moe/cursive-logger-view"
+version = "0.6.0"
 
 [dependencies]
 cursive_core = "0.3"
-arraydeque = "0.4"
-flexi_logger = "0.22"
-lazy_static = "1.4"
+arraydeque = "0.4.5"
+flexi_logger = "0.27.4"
 log = "0.4"
 unicode-width = "0.1"
-time = "0.3.5"
+time = "0.3.34"
 
 [dev-dependencies]
-cursive = "0.17.0"
+cursive = "0.20.0"
