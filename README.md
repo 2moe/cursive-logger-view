@@ -1,10 +1,13 @@
 # cursive-logger-view
 
+[![crates.io](https://img.shields.io/crates/v/cursive-logger-view.svg)](https://crates.io/crates/cursive-logger-view)
+[![doc](https://docs.rs/cursive-logger-view/badge.svg)](https://docs.rs/cursive-logger-view)
+
 A fork of [cursive-flexi-logger-view](https://github.com/deinstapel/cursive-flexi-logger-view).
 
 ---
 
-This project provides a new debug view for [gyscos/cursive](https://github.com/gyscos/cursive) using the [emabee/flexi_logger](https://github.com/emabee/flexi_logger) crate. This enables the `FlexiLoggerView` to respect the `RUST_LOG` environment variable as well as the `flexi_logger` configuration file. Have a look at the `demo` below to see how it looks.
+This project provides a new debug view for [gyscos/cursive](https://github.com/gyscos/cursive) using the [emabee/flexi_logger](https://github.com/emabee/flexi_logger) crate. This enables the `FlexiLoggerView` to respect the `RUST_LOG` environment variable as well as the `flexi_logger` configuration file.
 
 ## How does it look like?
 
@@ -45,14 +48,9 @@ fn main() {
                 .suppress_timestamp(),
             cursive_flexi_logger(&siv),
         )
-        .duplicate_to_stderr(flexi_logger::Duplicate::Warn)
-        .append()
         .format(flexi_logger::colored_with_thread)
-        .format_for_files(flexi_logger::detailed_format)
-        .format_for_stderr(flexi_logger::colored_default_format)
-        .print_message()
         .start()
-        .expect("failed to initialize logger!");
+        .expect("failed to initialize logger!")
 
     siv.add_layer(Panel::new(FlexiLoggerView::scrollable()));
     // omit `scrollable` to remove scrollbars
