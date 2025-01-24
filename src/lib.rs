@@ -82,7 +82,7 @@
 //!     // siv.run();
 //! ```
 
-use arraydeque::{ArrayDeque, Wrapping};
+use arraydeque::{behavior, ArrayDeque};
 use cursive_core::{
     theme::{BaseColor, Color},
     utils::markup::StyledString,
@@ -98,7 +98,7 @@ use std::{
     thread,
 };
 
-type LogBuffer = ArrayDeque<[StyledString; 2048], Wrapping>;
+type LogBuffer = ArrayDeque<StyledString, 2048, behavior::Wrapping>;
 
 static FLEXI_LOGGER_DEBUG_VIEW_NAME: &str = "_flexi_debug_view";
 
@@ -430,6 +430,7 @@ impl LogWriter for CursiveLogWriter {
             .lock()
             .expect(GET_LOCK_ERR_MSG)
             .push_back(line);
+        // .map_err(std::io::Error::other)?;
 
         self.sink
             .send(Box::new(|_siv| {}))

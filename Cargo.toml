@@ -5,21 +5,23 @@ authors = [
 ]
 description = "Forked from deinstapel/cursive-flexi-logger-view"
 documentation = "https://docs.rs/cursive-logger-view"
-edition = "2018"
+edition = "2021"
 keywords = ["cursive-views", "cursive", "logging", "debug", "terminal"]
 license = "BSD-3-Clause"
 name = "cursive-logger-view"
 readme = "README.md"
 repository = "https://github.com/2moe/cursive-logger-view"
-version = "0.6.0"
+version = "0.7.0"
+exclude = ["/assets", "/scripts", ".*"]
+# include = ["/.github"]
 
 [dependencies]
-cursive_core = "0.3"
-arraydeque = "0.4.5"
-flexi_logger = "0.27.4"
+cursive_core = "0.4"
+arraydeque = "0.5"
+flexi_logger = "0.29"
 log = "0.4"
-unicode-width = "0.1"
-time = "0.3.34"
+unicode-width = "0.2"
+time = "0.3"
 
 [dev-dependencies]
-cursive = "0.20.0"
+cursive = "0.21.1"

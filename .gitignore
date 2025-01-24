@@ -1,5 +1,24 @@
-/target
+# black list
+/*
+target
 **/*.rs.bk
 *.temp
-Cargo.lock
 logs
+tmp
+desktop.ini
+.DS_Store
+.directory
+.nomedia
+.thumbnails
+Thumbs.db*
+
+# white list
+!/Cargo.lock
+!/Cargo.toml
+!/LICENSE
+!/README.md
+!/assets
+!/examples
+!/scripts
+!/src
+!/.cargo

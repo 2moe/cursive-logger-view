@@ -1,7 +1,5 @@
-use cursive::view::Resizable;
-use cursive::views::Dialog;
-use cursive::{Cursive, CursiveExt, Vec2};
-use cursive_flexi_logger_view::FlexiLoggerView;
+use cursive::{view::Resizable, views::Dialog, Cursive, CursiveExt, Vec2};
+use cursive_logger_view::{cursive_flexi_logger, FlexiLoggerView};
 
 use std::time::Duration;
 
@@ -17,7 +15,7 @@ fn main() {
             flexi_logger::FileSpec::default()
                 .directory("logs")
                 .suppress_timestamp(),
-            cursive_flexi_logger_view::cursive_flexi_logger(&siv),
+            cursive_flexi_logger(&siv),
         )
         .format(flexi_logger::colored_with_thread)
         .start()
