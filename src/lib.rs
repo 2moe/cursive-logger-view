@@ -88,26 +88,19 @@
 //!     // siv.run();
 //! ```
 mod formatter;
+mod log_buffer;
 pub mod toggle;
 mod view;
 
-use arraydeque::{behavior, ArrayDeque};
 use compact_str::CompactString;
-use cursive_core::{utils::markup::StyledString, CbSink, Cursive};
+use cursive_core::{CbSink, Cursive};
 use flexi_logger::writers::LogWriter;
 use getset::WithSetters;
-use std::sync::{Arc, Mutex, OnceLock};
 use tap::Pipe;
 use tinyvec::TinyVec;
 
-type LogBuffer = ArrayDeque<StyledString, 2048, behavior::Wrapping>;
-
 static FLEXI_LOGGER_DEBUG_VIEW_NAME: &str = "_flexi_debug_view";
 
-fn static_logs() -> &'static Arc<Mutex<LogBuffer>> {
-    static LOGS: OnceLock<Arc<Mutex<LogBuffer>>> = OnceLock::new();
-    LOGS.get_or_init(|| Arc::new(Mutex::new(LogBuffer::new())))
-}
 const GET_LOCK_ERR_MSG: &str = "Failed to get static_logs Mutex Lock";
 
 /// The `FlexiLoggerView` displays log messages from the `cursive_flexi_logger` log target.

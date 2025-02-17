@@ -1,4 +1,4 @@
-use crate::{static_logs, CursiveLogWriter, LogItems, GET_LOCK_ERR_MSG};
+use crate::{log_buffer, CursiveLogWriter, LogItems, GET_LOCK_ERR_MSG};
 use compact_str::{format_compact, CompactString, ToCompactString};
 use cursive_core::{
     theme::{BaseColor, Color},
@@ -145,7 +145,7 @@ impl LogWriter for CursiveLogWriter<'_> {
             .line
             .pipe(core::mem::take);
 
-        static_logs()
+        log_buffer::static_logs()
             .lock()
             .expect(GET_LOCK_ERR_MSG)
             .push_back(line);

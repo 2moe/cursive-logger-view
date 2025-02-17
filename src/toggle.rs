@@ -1,6 +1,6 @@
 //! ## Add toggleable flexi_logger debug console view
 //!
-//! This crate also provide utility functions, which is simplify usage of `FlexiLoggerView`, providing
+//! This crate provides utility functions, which is simplify usage of `FlexiLoggerView`, providing
 //! debug console view like [`Cursive::toggle_debug_console`](/cursive/latest/cursive/struct.Cursive.html#method.toggle_debug_console).
 //! There is 3 functions:
 //!

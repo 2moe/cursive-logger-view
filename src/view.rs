@@ -1,4 +1,4 @@
-use crate::{static_logs, FlexiLoggerView, GET_LOCK_ERR_MSG};
+use crate::{log_buffer, FlexiLoggerView, GET_LOCK_ERR_MSG};
 use cursive_core::{
     view::{ScrollStrategy, Scrollable, View},
     views::ScrollView,
@@ -34,7 +34,7 @@ impl FlexiLoggerView {
 
 impl View for FlexiLoggerView {
     fn draw(&self, printer: &Printer<'_, '_>) {
-        let logs = static_logs()
+        let logs = log_buffer::static_logs()
             .lock()
             .expect(GET_LOCK_ERR_MSG);
 
@@ -79,7 +79,7 @@ impl View for FlexiLoggerView {
     }
 
     fn required_size(&mut self, constraint: Vec2) -> Vec2 {
-        let logs = static_logs()
+        let logs = log_buffer::static_logs()
             .lock()
             .expect(GET_LOCK_ERR_MSG);
 
