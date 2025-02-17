@@ -17,7 +17,7 @@ pub(crate) const GET_LOCK_ERR_MSG: &str = "Failed to get static_logs Mutex Lock"
 ///   - Reason: This data-structure is very large. If allocated on the stack via `new()`, it could cause a stack overflow.
 type LogBuffer = CircularBuffer<3072, StyledString>;
 
-/// Thread-safe shared buffer type breakdown:
+/// Thread-safe buffer type breakdown:
 /// - Box: Ensures buffer allocation stays on the heap
 /// - Mutex: Provides exclusive access synchronization
 type SyncBuffer = Mutex<Box<LogBuffer>>;
