@@ -1,4 +1,7 @@
-use crate::{log_buffer, FlexiLoggerView, GET_LOCK_ERR_MSG};
+use crate::{
+    log_buffer::{self, GET_LOCK_ERR_MSG},
+    FlexiLoggerView,
+};
 use cursive_core::{
     view::{ScrollStrategy, Scrollable, View},
     views::ScrollView,

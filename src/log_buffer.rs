@@ -3,6 +3,8 @@ use cursive_core::utils::markup::StyledString;
 use std::sync::{Arc, Mutex, OnceLock};
 use tap::Pipe;
 
+pub(crate) const GET_LOCK_ERR_MSG: &str = "Failed to get static_logs Mutex Lock";
+
 type LogBuffer = ArrayDeque<StyledString, 2048, behavior::Wrapping>;
 type ArcMutexBuffer = Arc<Mutex<LogBuffer>>;
 

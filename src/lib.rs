@@ -99,9 +99,7 @@ use getset::WithSetters;
 use tap::Pipe;
 use tinyvec::TinyVec;
 
-static FLEXI_LOGGER_DEBUG_VIEW_NAME: &str = "_flexi_debug_view";
-
-const GET_LOCK_ERR_MSG: &str = "Failed to get static_logs Mutex Lock";
+const FLEXI_LOGGER_DEBUG_VIEW_NAME: &str = "_flexi_debug_view";
 
 /// The `FlexiLoggerView` displays log messages from the `cursive_flexi_logger` log target.
 ///

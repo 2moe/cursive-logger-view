@@ -1,4 +1,7 @@
-use crate::{log_buffer, CursiveLogWriter, LogItems, GET_LOCK_ERR_MSG};
+use crate::{
+    log_buffer::{self, GET_LOCK_ERR_MSG},
+    CursiveLogWriter, LogItems,
+};
 use compact_str::{format_compact, CompactString, ToCompactString};
 use cursive_core::{
     theme::{BaseColor, Color},
