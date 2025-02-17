@@ -29,7 +29,7 @@ fn main() {
         )
         .title("Flexi-Logger View")
         .button("Quit", |siv| siv.quit())
-        .fixed_size(Vec2::new(72, 10)),
+        .fixed_size(Vec2::new(72, 18)),
     );
 
     log::info!("started simple example");
@@ -42,8 +42,14 @@ fn main() {
             std::thread::sleep(Duration::from_secs(1));
 
             log::debug!("A debug log message");
-            std::thread::sleep(Duration::from_secs(1));
+            // std::thread::sleep(Duration::from_secs(1));
 
+            {
+                for i in 0u32..=3072 {
+                    log::trace!("index {i}");
+                }
+                std::thread::sleep(Duration::from_secs(2));
+            }
             log::info!("An info log message");
             std::thread::sleep(Duration::from_secs(1));
 

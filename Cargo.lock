@@ -40,12 +40,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "arraydeque"
-version = "0.5.1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "7d902e3d592a523def97af8f317b08ce16b7ab854c1985a0c671e6f15cebc236"
-
-[[package]]
 name = "autocfg"
 version = "1.4.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -98,6 +92,12 @@ dependencies = [
  "num-traits",
  "windows-targets",
 ]
+
+[[package]]
+name = "circular-buffer"
+version = "1.0.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "4dacb91f972298e70fc507a2ffcaf1545807f1a36da586fb846646030adc542f"
 
 [[package]]
 name = "compact_str"
@@ -180,9 +180,9 @@ dependencies = [
 
 [[package]]
 name = "cursive-logger-view"
-version = "0.8.1"
+version = "0.8.2"
 dependencies = [
- "arraydeque",
+ "circular-buffer",
  "compact_str",
  "cursive",
  "cursive_core",
