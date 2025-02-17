@@ -1,5 +1,5 @@
 [package]
-version = "0.8.0"
+version = "0.8.1"
 edition = "2021"
 authors = [
     "Fin Christensen <christensen.fin@gmail.com>",
@@ -22,7 +22,7 @@ arraydeque = "0.5"
 flexi_logger = "0.29"
 log = "0.4"
 unicode-width = "0.2"
-time = "0.3"
+# time = "0.3"
 tap = "1.0"
 getset = "0.1"
 compact_str = "0.8"
