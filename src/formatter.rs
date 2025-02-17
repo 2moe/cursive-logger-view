@@ -10,7 +10,7 @@ use log::Level;
 use std::{io, thread};
 use tap::Pipe;
 
-const fn match_colored_level(level: &Level) -> Color {
+const fn log_level_as_dark_color(level: &Level) -> Color {
     use BaseColor::{Cyan, Green, Magenta, Red, Yellow};
     use Level::*;
     let base_color = match level {
@@ -76,7 +76,7 @@ impl LogWriter for CursiveLogWriter<'_> {
             color_enabled: false,
             color: record
                 .level()
-                .pipe_ref(match_colored_level),
+                .pipe_ref(log_level_as_dark_color),
         };
 
         let line = self
