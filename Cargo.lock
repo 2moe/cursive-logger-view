@@ -180,7 +180,7 @@ dependencies = [
 
 [[package]]
 name = "cursive-logger-view"
-version = "0.8.2"
+version = "0.8.3"
 dependencies = [
  "circular-buffer",
  "compact_str",

@@ -1,6 +1,6 @@
 use circular_buffer::CircularBuffer;
 use cursive_core::utils::markup::StyledString;
-use std::sync::{Arc, Mutex, OnceLock};
+use std::sync::{Mutex, OnceLock};
 use tap::Pipe;
 
 /// Pre-defined error message for lock acquisition failures
@@ -20,8 +20,7 @@ type LogBuffer = CircularBuffer<3072, StyledString>;
 /// Thread-safe shared buffer type breakdown:
 /// - Box: Ensures buffer allocation stays on the heap
 /// - Mutex: Provides exclusive access synchronization
-/// - Arc: Enables shared ownership across threads
-type ArcMutexBuffer = Arc<Mutex<Box<LogBuffer>>>;
+type SyncBuffer = Mutex<Box<LogBuffer>>;
 
 /// Initializes and provides global access to the thread-safe log buffer
 ///
@@ -29,16 +28,11 @@ type ArcMutexBuffer = Arc<Mutex<Box<LogBuffer>>>;
 /// 1. Thread-safe lazy initialization
 /// 2. Avoids "double initialization" race conditions
 /// 3. No unnecessary allocation before first use
-pub(crate) fn static_logs() -> &'static ArcMutexBuffer {
-    static LOGS: OnceLock<ArcMutexBuffer> = OnceLock::new();
+pub(crate) fn static_logs() -> &'static SyncBuffer {
+    static LOGS: OnceLock<SyncBuffer> = OnceLock::new();
 
     LOGS.get_or_init(|| {
-        // Critical initialization sequence:
-        // 1. Create heap-allocated buffer (Box prevents stack overflow)
-        // 2. Wrap in Mutex for thread-safe access
-        // 3. Share via Arc for cross-thread cloning
-        LogBuffer::boxed() // Explicit heap allocation
-            .pipe(Mutex::new) // Add synchronization layer
-            .pipe(Arc::new) // Enable shared ownership
+        LogBuffer::boxed() // Create heap-allocated buffer (Box prevents stack overflow)
+            .pipe(Mutex::new)
     })
 }
