@@ -16,7 +16,7 @@ Thumbs.db*
 !/Cargo.lock
 !/Cargo.toml
 !/LICENSE
-!/README.md
+!/Readme.*
 !/assets
 !/examples
 !/scripts

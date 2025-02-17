@@ -1,17 +1,18 @@
 [package]
+version = "0.8.0"
+edition = "2021"
 authors = [
     "Fin Christensen <christensen.fin@gmail.com>",
     "Johannes Wünsche <johannes.wuensche97@gmail.com>",
+    "Moe <m@tmoe.me>",
 ]
 description = "Forked from deinstapel/cursive-flexi-logger-view"
 documentation = "https://docs.rs/cursive-logger-view"
-edition = "2021"
 keywords = ["cursive-views", "cursive", "logging", "debug", "terminal"]
 license = "BSD-3-Clause"
 name = "cursive-logger-view"
-readme = "README.md"
+readme = "Readme.md"
 repository = "https://github.com/2moe/cursive-logger-view"
-version = "0.7.0"
 exclude = ["/assets", "/scripts", ".*"]
 # include = ["/.github"]
 
@@ -22,6 +23,14 @@ flexi_logger = "0.29"
 log = "0.4"
 unicode-width = "0.2"
 time = "0.3"
+tap = "1.0"
+getset = "0.1"
+compact_str = "0.8"
+tinyvec = { version = "1.8", default-features = false, features = [
+    "alloc",
+    "rustc_1_61",
+] }
+
 
 [dev-dependencies]
 cursive = "0.21.1"

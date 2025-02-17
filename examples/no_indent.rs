@@ -1,5 +1,5 @@
 use cursive::{view::Resizable, views::Dialog, Cursive, CursiveExt, Vec2};
-use cursive_logger_view::{cursive_flexi_logger, FlexiLoggerView, Indentable};
+use cursive_logger_view::FlexiLoggerView;
 
 use std::time::Duration;
 
@@ -15,24 +15,28 @@ fn main() {
             flexi_logger::FileSpec::default()
                 .directory("logs")
                 .suppress_timestamp(),
-            cursive_flexi_logger(&siv),
+            // cursive_logger_view::boxed_flexi_log_writer(&siv),
+            cursive_logger_view::CursiveLogWriter::new(&siv).into_boxed(),
         )
-        .format(flexi_logger::colored_with_thread)
         .start()
         .expect("failed to initialize logger!");
 
     siv.add_layer(
-        Dialog::around(FlexiLoggerView::scrollable().no_indent())
-            .title("Flexi-Logger View")
-            .button("Quit", |siv| siv.quit())
-            .fixed_size(Vec2::new(72, 10)),
+        Dialog::around(
+            FlexiLoggerView::new()
+                .with_indent(false)
+                .wrap_scroll_view(),
+        )
+        .title("Flexi-Logger View")
+        .button("Quit", |siv| siv.quit())
+        .fixed_size(Vec2::new(72, 10)),
     );
 
     log::info!("started simple example");
 
     let sink = siv.cb_sink().clone();
     std::thread::Builder::new()
-        .name("worker".to_string())
+        .name("worker".into())
         .spawn(move || {
             log::trace!("A trace log message");
             std::thread::sleep(Duration::from_secs(1));

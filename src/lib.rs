@@ -10,48 +10,55 @@
 //! ## Using the `FlexiLoggerView`
 //!
 //! To create a `FlexiLoggerView` you first have to register the
-//! `cursive_flexi_logger` as a `LogTarget` in `flexi_logger`. After the
-//! `flexi_logger` has started, you may create a `FlexiLoggerView` instance and
+//! `boxed_flexi_log_writer(&cursive)` or `CursiveLogWriter::new(&cursive).into_boxed()` as a `LogTarget` in `flexi_logger`. After the
+//! `flexi_logger` has started, you may create a `FlexiLoggerView::new().wrap_scroll_view()` instance and
 //! add it to cursive.
 //!
 //! ```rust
 //! use cursive::{Cursive, CursiveExt};
-//! use cursive_logger_view::FlexiLoggerView;
+//! use cursive_logger_view::{CursiveLogWriter, FlexiLoggerView};
 //! use flexi_logger::Logger;
 //!     // we need to initialize cursive first, as the cursive-flexi-logger
 //!     // needs a cursive callback sink to notify cursive about screen refreshs
 //!     // when a new log message arrives
 //!     let mut siv = Cursive::default();
 //!
+//!     // Configure the flexi logger with environment-variable($RUST_LOG) or fallback to "trace" level
 //!     Logger::try_with_env_or_str("trace")
 //!         .expect("Could not create Logger from environment :(")
+//!         // Configure logging to both file and Cursive
 //!         .log_to_file_and_writer(
-//!            flexi_logger::FileSpec::default()
+//!             // File configuration: store logs in 'logs' directory without timestamps
+//!             flexi_logger::FileSpec::default()
 //!                 .directory("logs")
 //!                 .suppress_timestamp(),
-//!             cursive_logger_view::cursive_flexi_logger(&siv)
+//!             // Create Cursive log writer and box it for dynamic dispatch
+//!             CursiveLogWriter::new(&siv)
+//!                 //// Optional format configuration (commented out example)
+//!                 // .with_format({
+//!                 //     use cursive_logger_view::LogItems::*;
+//!                 //     [Level, DateTime, ModLine, Message]
+//!                 //         .into_iter()
+//!                 //         .collect()
+//!                 // })
+//!                 // .with_time_format("%T%.6f".into())
+//!                 .into_boxed(),
 //!         )
-//!         .format(flexi_logger::colored_with_thread)
 //!         .start()
 //!         .expect("failed to initialize logger!");
 //!
-//!     siv.add_layer(FlexiLoggerView::scrollable()); // omit `scrollable` to remove scrollbars
+//!     // Add the logger view to Cursive
+//!     siv.add_layer(
+//!         FlexiLoggerView::new()
+//!             // .with_indent(true)  // Optional indentation configuration
+//!             //
+//!             .wrap_scroll_view(),
+//!     );
 //!
 //!     log::info!("test log message");
 //!     // siv.run();
 //! ```
 //!
-//! Look into the `FlexiLoggerView` documentation for a detailed explanation.
-//!
-//! ## Add toggleable flexi_logger debug console view
-//!
-//! This crate also provide utility functions, which is simplify usage of `FlexiLoggerView`, providing
-//! debug console view like [`Cursive::toggle_debug_console`](/cursive/latest/cursive/struct.Cursive.html#method.toggle_debug_console).
-//! There is 3 functions:
-//!
-//!  - `show_flexi_logger_debug_console`: show debug console view;
-//!  - `hide_flexi_logger_debug_console`: hide debug console view (if visible);
-//!  - `toggle_flexi_logger_debug_console`: show the debug console view, or hide it if it's already visible.
 //!
 //! ```rust
 //! use cursive::{Cursive, CursiveExt};
@@ -68,9 +75,8 @@
 //!            flexi_logger::FileSpec::default()
 //!                 .directory("logs")
 //!                 .suppress_timestamp(),
-//!             cursive_logger_view::cursive_flexi_logger(&siv)
+//!             cursive_logger_view::boxed_flexi_log_writer(&siv)
 //!         )
-//!         .format(flexi_logger::colored_with_thread)
 //!         .start()
 //!         .expect("failed to initialize logger!");
 //!
@@ -81,22 +87,18 @@
 //!     log::info!("test log message");
 //!     // siv.run();
 //! ```
+mod formatter;
+pub mod toggle;
+mod view;
 
 use arraydeque::{behavior, ArrayDeque};
-use cursive_core::{
-    theme::{BaseColor, Color},
-    utils::markup::StyledString,
-    view::{Nameable, ScrollStrategy, Scrollable, View},
-    views::{Dialog, ScrollView},
-    CbSink, Cursive, Printer, Vec2,
-};
-use flexi_logger::{writers::LogWriter, DeferredNow, Level, Record};
-use unicode_width::UnicodeWidthStr;
-
-use std::{
-    sync::{Arc, Mutex, OnceLock},
-    thread,
-};
+use compact_str::CompactString;
+use cursive_core::{utils::markup::StyledString, CbSink, Cursive};
+use flexi_logger::writers::LogWriter;
+use getset::WithSetters;
+use std::sync::{Arc, Mutex, OnceLock};
+use tap::Pipe;
+use tinyvec::TinyVec;
 
 type LogBuffer = ArrayDeque<StyledString, 2048, behavior::Wrapping>;
 
@@ -109,238 +111,65 @@ fn static_logs() -> &'static Arc<Mutex<LogBuffer>> {
 const GET_LOCK_ERR_MSG: &str = "Failed to get static_logs Mutex Lock";
 
 /// The `FlexiLoggerView` displays log messages from the `cursive_flexi_logger` log target.
-/// It is safe to create multiple instances of this struct.
-///
-/// # Create a plain `FlexiLoggerView`
 ///
 /// ```rust
-/// use cursive::{Cursive, CursiveExt};
 /// use cursive_logger_view::FlexiLoggerView;
-/// use flexi_logger::Logger;
-///     // we need to initialize cursive first, as the cursive-flexi-logger
-///     // needs a cursive callback sink to notify cursive about screen refreshs
-///     // when a new log message arrives
-///     let mut siv = Cursive::default();
 ///
-///     Logger::try_with_env_or_str("trace")
-///         .expect("Could not create Logger from environment :(")
-///         .log_to_file_and_writer(
-///            flexi_logger::FileSpec::default()
-///                 .directory("logs")
-///                 .suppress_timestamp(),
-///             cursive_logger_view::cursive_flexi_logger(&siv)
-///         )
-///         .format(flexi_logger::colored_with_thread)
-///         .start()
-///         .expect("failed to initialize logger!");
-///
-///     siv.add_layer(FlexiLoggerView::new()); // add a plain flexi-logger view
-///
-///     log::info!("test log message");
-///     // siv.run();
+/// FlexiLoggerView::new().with_indent(true);
 /// ```
-///
-/// # Create a scrollable `FlexiLoggerView`
-///
-/// ```rust
-/// use cursive::{Cursive, CursiveExt};
-/// use cursive_logger_view::FlexiLoggerView;
-/// use flexi_logger::Logger;
-///     // we need to initialize cursive first, as the cursive-flexi-logger
-///     // needs a cursive callback sink to notify cursive about screen refreshs
-///     // when a new log message arrives
-///     let mut siv = Cursive::default();
-///
-///     Logger::try_with_env_or_str("trace")
-///         .expect("Could not create Logger from environment :(")
-///         .log_to_file_and_writer(
-///            flexi_logger::FileSpec::default()
-///                 .directory("logs")
-///                 .suppress_timestamp(),
-///             cursive_logger_view::cursive_flexi_logger(&siv)
-///         )
-///         .format(flexi_logger::colored_with_thread)
-///         .start()
-///         .expect("failed to initialize logger!");
-///
-///     siv.add_layer(FlexiLoggerView::scrollable()); // add a scrollable flexi-logger view
-///
-///     log::info!("test log message");
-///     // siv.run();
-/// ```
-#[derive(Default)]
+#[derive(Default, Debug, WithSetters)]
 pub struct FlexiLoggerView {
+    #[getset(set_with = "pub")]
     pub indent: bool,
 }
 
-pub trait Indentable {
-    fn no_indent(self) -> Self;
-    fn indent(self) -> Self;
-}
-
-impl FlexiLoggerView {
-    /// Create a new `FlexiLoggerView` which is wrapped in a `ScrollView`.
-    pub fn scrollable() -> ScrollView<Self> {
-        FlexiLoggerView { indent: true }
-            .scrollable()
-            .scroll_x(true)
-            .scroll_y(true)
-            .scroll_strategy(ScrollStrategy::StickToBottom)
-    }
-
-    /// Create a new `FlexiLoggerView`.
-    pub fn new() -> Self {
-        FlexiLoggerView { indent: true }
-    }
-}
-
-impl Indentable for ScrollView<FlexiLoggerView> {
-    /// Changes a `FlexiLoggerView`, which is contained in a `ScrollView`, to not indent messages
-    /// spanning multiple lines.
-    fn no_indent(mut self) -> Self {
-        self.get_inner_mut().indent = false;
-        self
-    }
-
-    /// Changes a `FlexiLoggerView`, which is contained in a `ScrollView`, to indent messages
-    /// spanning multiple lines.
-    fn indent(mut self) -> Self {
-        self.get_inner_mut().indent = true;
-        self
-    }
-}
-
-impl Indentable for FlexiLoggerView {
-    /// Changes a `FlexiLoggerView` to not indent messages spanning multiple lines.
-    fn no_indent(mut self) -> Self {
-        self.indent = false;
-        self
-    }
-
-    /// Changes a `FlexiLoggerView` to indent messages spanning multiple lines.
-    fn indent(mut self) -> Self {
-        self.indent = true;
-        self
-    }
-}
-
-impl View for FlexiLoggerView {
-    fn draw(&self, printer: &Printer<'_, '_>) {
-        let logs = static_logs()
-            .lock()
-            .expect(GET_LOCK_ERR_MSG);
-
-        // Only print the last logs, so skip what doesn't fit
-        let skipped = logs
-            .len()
-            .saturating_sub(printer.size.y);
-
-        let mut y = 0;
-        for msg in logs.iter().skip(skipped) {
-            let mut x = 0;
-
-            // Assume the log message is the last styled span
-            let log_msg_index = msg.spans_raw().len() - 1;
-
-            for span in msg.spans().take(log_msg_index) {
-                printer.with_style(*span.attr, |printer| {
-                    printer.print((x, y), span.content);
-                });
-                x += span.width;
-            }
-
-            let log_msg = msg
-                .spans()
-                .nth(log_msg_index)
-                .expect("Failed to get log message");
-            for part in log_msg.content.split('\n') {
-                printer.with_style(*log_msg.attr, |printer| {
-                    printer.print((x, y), part);
-                });
-                y += 1;
-                if !self.indent {
-                    x = 0;
-                }
-                // x is not modified ⇒ multiline messages look like this:
-                // DEBUG <src/main.rs:47> first line
-                //                        second line
-            }
-        }
-    }
-
-    fn required_size(&mut self, constraint: Vec2) -> Vec2 {
-        let logs = static_logs()
-            .lock()
-            .expect(GET_LOCK_ERR_MSG);
-
-        // The longest line sets the width
-        let w = logs
-            .iter()
-            .map(|msg| {
-                msg.spans()
-                    .map(|x|
-                    // if the log message contains more than one line,
-                    // only the longest line should be considered
-                    // (definitely not the total content.len())
-                    x.content.split('\n').map(|x| x.width()).max().expect("ERR: required_size(), failed to get width"))
-                    .sum::<usize>()
-            })
-            .max()
-            .unwrap_or(1);
-        let h = logs
-            .iter()
-            .map(|msg| {
-                msg.spans()
-                    .last()
-                    .map(|x| x.content.split('\n').count())
-                    .expect("ERR: required_size(), the last span message is invalid, and failed to get height.")
-            })
-            .sum::<usize>();
-        let w = std::cmp::max(w, constraint.x);
-        let h = std::cmp::max(h, constraint.y);
-
-        Vec2::new(w, h)
-    }
-}
-
 ///Possible log items
-pub enum LogItems {
-    DATETIME,
-    THREAD,
-    FILE,
+#[derive(Debug)]
+pub enum LogItems<'c> {
+    DateTime,
+    Thread,
+    ModLine,
+    File,
     FileLine,
-    LEVEL,
-    MESSAGE,
-    S(String),
+    Level,
+    Message,
+    // ThreadLine,
+    Custom(&'c str),
 }
 
-use crate::LogItems::{FileLine, DATETIME, FILE, LEVEL, MESSAGE, THREAD};
+impl Default for LogItems<'_> {
+    fn default() -> Self {
+        Self::Level
+    }
+}
 
 /// The `flexi_logger` `LogWriter` implementation for the `FlexiLoggerView`.
 ///
-/// Use the `cursive_flexi_logger` function to create an instance of this struct.
-pub struct CursiveLogWriter {
+/// Use the `boxed_flexi_log_writer` or `CursiveLogWriter::new` function to create an instance of this struct.
+#[derive(Debug, WithSetters)]
+#[getset(set_with = "pub")]
+pub struct CursiveLogWriter<'fmt> {
     sink: CbSink,
-    format: Vec<LogItems>,
-    time_format: String,
+    format: TinyVec<[LogItems<'fmt>; 8]>,
+    time_format: CompactString,
 }
 
-pub trait FormattableLogWriter {
-    fn with_format(self, new_format: Vec<LogItems>) -> Self;
-    fn with_time_format(self, new_format: &str) -> Self;
-}
+impl CursiveLogWriter<'_> {
+    pub fn new(siv: &Cursive) -> Self {
+        use crate::LogItems::{DateTime, Level, Message, ModLine};
 
-impl FormattableLogWriter for Box<CursiveLogWriter> {
-    ///Set up a custom log format
-    fn with_format(mut self, new_format: Vec<LogItems>) -> Self {
-        self.format = new_format;
-        self
+        Self {
+            sink: siv.cb_sink().clone(),
+            format: [DateTime, Level, ModLine, Message]
+                .into_iter()
+                .collect(),
+            time_format: "%T%.3f".pipe(CompactString::const_new),
+        }
     }
 
-    /// Set up a custom format for a time
-    fn with_time_format(mut self, new_format: &str) -> Self {
-        self.time_format = new_format.to_string();
-        self
+    pub fn into_boxed(self) -> Box<Self> {
+        // Box::new(self)
+        self.into()
     }
 }
 
@@ -370,207 +199,12 @@ impl FormattableLogWriter for Box<CursiveLogWriter> {
 ///            flexi_logger::FileSpec::default()
 ///                 .directory("logs")
 ///                 .suppress_timestamp(),
-///             cursive_logger_view::cursive_flexi_logger(&siv)
+///             cursive_logger_view::boxed_flexi_log_writer(&siv)
 ///         )
-///         .format(flexi_logger::colored_with_thread)
 ///         .start()
 ///         .expect("failed to initialize logger!");
 /// ```
-pub fn cursive_flexi_logger(siv: &Cursive) -> Box<dyn LogWriter> {
-    Box::new(CursiveLogWriter {
-        sink: siv.cb_sink().clone(),
-        format: vec![DATETIME, THREAD, LEVEL, FileLine, MESSAGE],
-        time_format: "%T%.3f".to_string(),
-    })
-}
-
-impl LogWriter for CursiveLogWriter {
-    fn write(&self, now: &mut DeferredNow, record: &Record) -> std::io::Result<()> {
-        let color = Color::Dark(match record.level() {
-            Level::Trace => BaseColor::Green,
-            Level::Debug => BaseColor::Cyan,
-            Level::Info => BaseColor::Blue,
-            Level::Warn => BaseColor::Yellow,
-            Level::Error => BaseColor::Red,
-        });
-
-        let mut line = StyledString::new();
-        for item in self.format.iter() {
-            match item {
-                DATETIME => line.append_styled(
-                    format!("{} ", now.format(&self.time_format)),
-                    color,
-                ),
-                THREAD => line.append_plain(format!(
-                    "[{}] ",
-                    thread::current()
-                        .name()
-                        .unwrap_or("(unnamed) "),
-                )),
-                LEVEL => line.append_styled(format!("{} ", record.level()), color),
-                FILE => line.append_plain(format!(
-                    "<{}> ",
-                    record
-                        .file()
-                        .unwrap_or("(unnamed)"),
-                )),
-                FileLine => line.append_plain(format!(
-                    "<{}:{}> ",
-                    record
-                        .file()
-                        .unwrap_or("(unnamed)"),
-                    record.line().unwrap_or(0),
-                )),
-                MESSAGE => line.append_styled(format!("{}", &record.args()), color),
-                LogItems::S(txt) => line.append_plain(txt),
-            }
-        }
-
-        static_logs()
-            .lock()
-            .expect(GET_LOCK_ERR_MSG)
-            .push_back(line);
-        // .map_err(std::io::Error::other)?;
-
-        self.sink
-            .send(Box::new(|_siv| {}))
-            .map_err(|_| {
-                std::io::Error::new(
-                    std::io::ErrorKind::BrokenPipe,
-                    "cursive callback sink is closed!",
-                )
-            })
-    }
-
-    fn flush(&self) -> std::io::Result<()> {
-        // we are not buffering
-        Ok(())
-    }
-
-    fn max_log_level(&self) -> log::LevelFilter {
-        log::LevelFilter::max()
-    }
-}
-
-/// Show the flexi_logger debug console.
-///
-/// This is analog to [`Cursive::show_debug_console`](/cursive/latest/cursive/struct.Cursive.html#method.show_debug_console).
-///
-/// # Add binding to show flexi_logger debug view
-///
-/// ```rust
-/// use cursive::{Cursive, CursiveExt};
-/// use cursive_logger_view::show_flexi_logger_debug_console;
-/// use flexi_logger::Logger;
-///
-///     // we need to initialize cursive first, as the cursive-flexi-logger
-///     // needs a cursive callback sink to notify cursive about screen refreshs
-///     // when a new log message arrives
-///     let mut siv = Cursive::default();
-///
-///     Logger::try_with_env_or_str("trace")
-///         .expect("Could not create Logger from environment :(")
-///         .log_to_file_and_writer(
-///            flexi_logger::FileSpec::default()
-///                 .directory("logs")
-///                 .suppress_timestamp(),
-///             cursive_logger_view::cursive_flexi_logger(&siv)
-///         )
-///         .format(flexi_logger::colored_with_thread)
-///         .start()
-///         .expect("failed to initialize logger!");
-///
-///     siv.add_global_callback('~', show_flexi_logger_debug_console);  // Add binding to show flexi_logger debug view
-///
-///     // siv.run();
-/// ```
-pub fn show_flexi_logger_debug_console(siv: &mut Cursive) {
-    siv.add_layer(
-        Dialog::around(
-            FlexiLoggerView::scrollable().with_name(FLEXI_LOGGER_DEBUG_VIEW_NAME),
-        )
-        .title("Debug console"),
-    );
-}
-
-/// Hide the flexi_logger debug console (if visible).
-///
-/// # Add binding to hide flexi_logger debug view
-///
-/// ```rust
-/// use cursive::{Cursive, CursiveExt};
-/// use cursive_logger_view::hide_flexi_logger_debug_console;
-/// use flexi_logger::Logger;
-///     // we need to initialize cursive first, as the cursive-flexi-logger
-///     // needs a cursive callback sink to notify cursive about screen refreshs
-///     // when a new log message arrives
-///     let mut siv = Cursive::default();
-///
-///     Logger::try_with_env_or_str("trace")
-///         .expect("Could not create Logger from environment :(")
-///         .log_to_file_and_writer(
-///            flexi_logger::FileSpec::default()
-///                 .directory("logs")
-///                 .suppress_timestamp(),
-///             cursive_logger_view::cursive_flexi_logger(&siv)
-///         )
-///         .format(flexi_logger::colored_with_thread)
-///         .start()
-///         .expect("failed to initialize logger!");
-///
-///     siv.add_global_callback('~', hide_flexi_logger_debug_console);  // Add binding to hide flexi_logger debug view
-///
-///     // siv.run();
-/// ```
-pub fn hide_flexi_logger_debug_console(siv: &mut Cursive) {
-    if let Some(pos) = siv
-        .screen_mut()
-        .find_layer_from_name(FLEXI_LOGGER_DEBUG_VIEW_NAME)
-    {
-        siv.screen_mut()
-            .remove_layer(pos);
-    }
-}
-
-/// Show the flexi_logger debug console, or hide it if it's already visible.
-///
-/// This is analog to [`Cursive::toggle_debug_console`](/cursive/latest/cursive/struct.Cursive.html#method.toggle_debug_console).
-///
-/// # Enable toggleable flexi_logger debug view
-///
-/// ```rust
-/// use cursive::{Cursive, CursiveExt};
-/// use cursive_logger_view::toggle_flexi_logger_debug_console;
-/// use flexi_logger::Logger;
-///     // we need to initialize cursive first, as the cursive-flexi-logger
-///     // needs a cursive callback sink to notify cursive about screen refreshs
-///     // when a new log message arrives
-///     let mut siv = Cursive::default();
-///
-///     Logger::try_with_env_or_str("trace")
-///         .expect("Could not create Logger from environment :(")
-///         .log_to_file_and_writer(
-///            flexi_logger::FileSpec::default()
-///                 .directory("logs")
-///                 .suppress_timestamp(),
-///             cursive_logger_view::cursive_flexi_logger(&siv)
-///         )
-///         .format(flexi_logger::colored_with_thread)
-///         .start()
-///         .expect("failed to initialize logger!");
-///
-///     siv.add_global_callback('~', toggle_flexi_logger_debug_console);  // Enable toggleable flexi_logger debug view
-///
-///     // siv.run();
-/// ```
-pub fn toggle_flexi_logger_debug_console(siv: &mut Cursive) {
-    if let Some(pos) = siv
-        .screen_mut()
-        .find_layer_from_name(FLEXI_LOGGER_DEBUG_VIEW_NAME)
-    {
-        siv.screen_mut()
-            .remove_layer(pos);
-    } else {
-        show_flexi_logger_debug_console(siv);
-    }
+pub fn boxed_flexi_log_writer(siv: &Cursive) -> Box<dyn LogWriter> {
+    CursiveLogWriter::new(siv) //
+        .pipe(Box::new)
 }
