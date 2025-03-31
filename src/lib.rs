@@ -10,15 +10,16 @@
 //! ## Using the `FlexiLoggerView`
 //!
 //! To create a `FlexiLoggerView` you first have to register the
-//! `boxed_flexi_log_writer(&cursive)` or `CursiveLogWriter::new(&cursive).into_boxed()` as a `LogTarget` in `flexi_logger`. After the
-//! `flexi_logger` has started, you may create a `FlexiLoggerView::new().wrap_scroll_view()` instance and
-//! add it to cursive.
+//! `boxed_flexi_log_writer(&cursive)` or
+//! `CursiveLogWriter::new(&cursive).into_boxed()` as a `LogTarget` in
+//! `flexi_logger`. After the `flexi_logger` has started, you may create a
+//! `FlexiLoggerView::new().wrap_scroll_view()` instance and add it to cursive.
 //!
 //! ```rust
 //! use cursive::{Cursive, CursiveExt};
 //! use cursive_logger_view::{CursiveLogWriter, FlexiLoggerView};
 //! use flexi_logger::Logger;
-//!     // we need to initialize cursive first, as the cursive-flexi-logger
+//!     // we need to initialize cursive first, as the cursive-logger-view
 //!     // needs a cursive callback sink to notify cursive about screen refreshs
 //!     // when a new log message arrives
 //!     let mut siv = Cursive::default();
@@ -64,7 +65,7 @@
 //! use cursive::{Cursive, CursiveExt};
 //! use cursive_logger_view::{show_flexi_logger_debug_console, hide_flexi_logger_debug_console, toggle_flexi_logger_debug_console};
 //! use flexi_logger::Logger;
-//!     // we need to initialize cursive first, as the cursive-flexi-logger
+//!     // we need to initialize cursive first, as the cursive-logger-view
 //!     // needs a cursive callback sink to notify cursive about screen refreshs
 //!     // when a new log message arrives
 //!     let mut siv = Cursive::default();
@@ -94,6 +95,7 @@ mod view;
 
 use compact_str::CompactString;
 use cursive_core::{CbSink, Cursive};
+pub use flexi_logger;
 use flexi_logger::writers::LogWriter;
 use getset::WithSetters;
 use tap::Pipe;
@@ -101,7 +103,8 @@ use tinyvec::TinyVec;
 
 const FLEXI_LOGGER_DEBUG_VIEW_NAME: &str = "_flexi_debug_view";
 
-/// The `FlexiLoggerView` displays log messages from the `cursive_flexi_logger` log target.
+/// The `FlexiLoggerView` displays log messages from the `cursive_flexi_logger`
+/// log target.
 ///
 /// ```rust
 /// use cursive_logger_view::FlexiLoggerView;
@@ -110,58 +113,59 @@ const FLEXI_LOGGER_DEBUG_VIEW_NAME: &str = "_flexi_debug_view";
 /// ```
 #[derive(Default, Debug, WithSetters)]
 pub struct FlexiLoggerView {
-    #[getset(set_with = "pub")]
-    pub indent: bool,
+  #[getset(set_with = "pub")]
+  pub indent: bool,
 }
 
 ///Possible log items
 #[derive(Debug)]
 pub enum LogItems<'c> {
-    DateTime,
-    Thread,
-    ModLine,
-    File,
-    FileLine,
-    Level,
-    Message,
-    // ThreadLine,
-    Custom(&'c str),
+  DateTime,
+  Thread,
+  ModLine,
+  File,
+  FileLine,
+  Level,
+  Message,
+  // ThreadLine,
+  Custom(&'c str),
 }
 
 impl Default for LogItems<'_> {
-    fn default() -> Self {
-        Self::Level
-    }
+  fn default() -> Self {
+    Self::Level
+  }
 }
 
 /// The `flexi_logger` `LogWriter` implementation for the `FlexiLoggerView`.
 ///
-/// Use the `boxed_flexi_log_writer` or `CursiveLogWriter::new` function to create an instance of this struct.
+/// Use the `boxed_flexi_log_writer` or `CursiveLogWriter::new` function to
+/// create an instance of this struct.
 #[derive(Debug, WithSetters)]
 #[getset(set_with = "pub")]
 pub struct CursiveLogWriter<'fmt> {
-    sink: CbSink,
-    format: TinyVec<[LogItems<'fmt>; 8]>,
-    time_format: CompactString,
+  sink: CbSink,
+  format: TinyVec<[LogItems<'fmt>; 8]>,
+  time_format: CompactString,
 }
 
 impl CursiveLogWriter<'_> {
-    pub fn new(siv: &Cursive) -> Self {
-        use crate::LogItems::{DateTime, Level, Message, ModLine};
+  pub fn new(siv: &Cursive) -> Self {
+    use crate::LogItems::{DateTime, Level, Message, ModLine};
 
-        Self {
-            sink: siv.cb_sink().clone(),
-            format: [DateTime, Level, ModLine, Message]
-                .into_iter()
-                .collect(),
-            time_format: "%T%.3f".pipe(CompactString::const_new),
-        }
+    Self {
+      sink: siv.cb_sink().clone(),
+      format: [DateTime, Level, ModLine, Message]
+        .into_iter()
+        .collect(),
+      time_format: "%T%.3f".pipe(CompactString::const_new),
     }
+  }
 
-    pub fn into_boxed(self) -> Box<Self> {
-        // Box::new(self)
-        self.into()
-    }
+  pub fn into_boxed(self) -> Box<Self> {
+    // Box::new(self)
+    self.into()
+  }
 }
 
 /// Creates a new `LogWriter` instance for the `FlexiLoggerView`. Use this to
@@ -179,7 +183,7 @@ impl CursiveLogWriter<'_> {
 /// use cursive::{Cursive, CursiveExt};
 /// use flexi_logger::Logger;
 ///
-///     // we need to initialize cursive first, as the cursive-flexi-logger
+///     // we need to initialize cursive first, as the cursive-logger-view
 ///     // needs a cursive callback sink to notify cursive about screen refreshs
 ///     // when a new log message arrives
 ///     let mut siv = Cursive::default();
@@ -196,6 +200,6 @@ impl CursiveLogWriter<'_> {
 ///         .expect("failed to initialize logger!");
 /// ```
 pub fn boxed_flexi_log_writer(siv: &Cursive) -> Box<dyn LogWriter> {
-    CursiveLogWriter::new(siv) //
-        .pipe(Box::new)
+  CursiveLogWriter::new(siv) //
+    .pipe(Box::new)
 }

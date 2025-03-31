@@ -22,3 +22,4 @@ Thumbs.db*
 !/scripts
 !/src
 !/.cargo
+!/.rustfmt.toml

@@ -3,7 +3,7 @@
 [![crates.io](https://img.shields.io/crates/v/cursive-logger-view.svg)](https://crates.io/crates/cursive-logger-view)
 [![doc](https://docs.rs/cursive-logger-view/badge.svg)](https://docs.rs/cursive-logger-view)
 
-A fork of [cursive-flexi-logger-view](https://github.com/deinstapel/cursive-flexi-logger-view).
+A fork of [cursive-logger-view-view](https://github.com/deinstapel/cursive-logger-view-view).
 
 ---
 

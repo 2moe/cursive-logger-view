@@ -1,12 +1,12 @@
 [package]
-version = "0.8.3"
+version = "0.8.4"
 edition = "2021"
 authors = [
     "Fin Christensen <christensen.fin@gmail.com>",
     "Johannes Wünsche <johannes.wuensche97@gmail.com>",
     "Moe <m@tmoe.me>",
 ]
-description = "Forked from deinstapel/cursive-flexi-logger-view"
+description = "Forked from deinstapel/cursive-logger-view-view"
 documentation = "https://docs.rs/cursive-logger-view"
 keywords = ["cursive-views", "cursive", "logging", "debug", "terminal"]
 license = "BSD-3-Clause"
@@ -24,7 +24,7 @@ unicode-width = "0.2"
 # time = "0.3"
 tap = "1.0"
 getset = "0.1"
-compact_str = "0.8"
+compact_str = "0.9"
 tinyvec = { version = "1.8", default-features = false, features = [
     "alloc",
     "rustc_1_61",
